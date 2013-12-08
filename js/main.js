@@ -100,7 +100,9 @@ var app = {
 		event = this.event;
 		borderTolerance = 30;	// when Earth reach a border, then Earth is "moving"
 
-		x = 2*event.accelerationIncludingGravity.x;
+		x = (event.accelerationIncludingGravity.z < 0) ?
+				2*event.accelerationIncludingGravity.x : 
+				-2*event.accelerationIncludingGravity.x;
 		y = event.accelerationIncludingGravity.z + 0.0;
 
 		// calculate X and Y distances between the Sun and Earth
