@@ -436,10 +436,12 @@ var app = {
       	cv.width = "360";
       	cv.height = "360";
 		window.xRatio = cv.width/screen.availWidth;
-		window.yRatio = cv.height/screen.availHeight;
+		window.yRatio = 0.9*cv.height/screen.availHeight;
 		xRatio = (xRatio === xRatio)? xRatio : 1.0;
-		yRatio = (yRatio === yRatio)? yRatio : 1.5;
-		Debugger.log("App Started! W:"+ cv.width +" H:"+ cv.height);
+		yRatio = (yRatio === yRatio)? yRatio : 1.0;
+		Debugger.log("App Started! ");
+		Debugger.log("aW:"+ cv.width +" aH:"+ cv.height);
+		Debugger.log("sW:"+ screen.availWidth +" sH:"+ screen.availHeight);
 		Debugger.log("Screen Ratio W:"+ xRatio +" H:"+ yRatio);
 		ctx.fillStyle = "rgba(0%, 0%, 0%, 0.5)";
 		ctx.fillRect(0, 0, cv.width, cv.height);
@@ -453,21 +455,17 @@ var app = {
 				//ctx.scale( xRatio, yRatio );
 				this.x = this.$dom.offset()['left'];
 				this.y = this.$dom.offset()['top'];
-				frequencyHandler(this.x/cv.width);
-				qFactorHandler(this.y/cv.width);
 				ctx.fillStyle = "#FFFFFF";
 				ctx.strokeStyle = "#FFFFFF";
 				ctx.lineWidth = "2";
 				ctx.beginPath();
 				ctx.arc(50, 50, 50, 0, Math.PI*2); 
-				ctx.closePath();
 				ctx.stroke();
 				ctx.restore();
 			} 
 		) );
 		
 		function draw(ctx) {
-			ctx.restore();
 			ctx.clearRect(0, 0, cv.width, cv.height);
 			//ctx.fillStyle = "rgba(0%, 0%, 0%, 0.5)";
 			//ctx.fillRect(0, 0, cv.width, cv.height);
@@ -553,7 +551,7 @@ function webAudioInit() {
     * audio play control
     */
     this.playSound = function () {
-        document.querySelector('.play').style.display = 'none';
+        document.querySelector('.play').firstChild.firstChild.innerHTML = ' Playing';
         //document.querySelector('.stop').style.display = 'inline';
 
         if (soundSource.playbackState ==2)
@@ -570,7 +568,6 @@ function webAudioInit() {
         soundSource.noteOn(context.currentTime);
 
         //Declare spectrum
-        //soundSpectrum = setInterval(canvasSpectrum, 50);
         soundSpectrum = setTimeout(canvasSpectrum, 50);
 		
     }
@@ -581,7 +578,7 @@ function webAudioInit() {
     this.stopSound = function () {
         //stop the source now
         try {
-            document.querySelector('.play').style.display = 'inline';
+            document.querySelector('.play').firstChild.firstChild.innerHTML = ' Play';
             //document.querySelector('.stop').style.display = 'none';
 
             if (soundSource.playbackState == 3)
@@ -725,11 +722,11 @@ function webAudioInit() {
             context.decodeAudioData(audioData, function (buffer) {
                 var obj = document.getElementById("loadtoplay");
                 isLoaded = true;
-                obj.innerHTML = "Play";
-				Debugger.log( "Play button set to "+  obj.value);
+                obj.firstChild.firstChild.innerHTML = " Play";
+				Debugger.log( "Play button set" );
                 bufferData = buffer;
                 soundSource.buffer = bufferData;
-                setTimeout(playSound, 15000);
+                //setTimeout(playSound, 15000);
             }, this.onDecodeError);
 
             volumeNode = context.createGainNode();
@@ -776,32 +773,32 @@ function webAudioInit() {
         gradient.addColorStop(0, "#FF0000");
 
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = gradient;
 		canvasFigures[0].draw = function( ctx ) {
-				ctx.save();
-				ctx.translate(this.x*xRatio, this.y*yRatio);
-        		var freqByteData = new
-				Uint8Array(audioAnalyser.frequencyBinCount);
-        		audioAnalyser.getByteFrequencyData(freqByteData);
-				this.x = this.$dom.offset()['left'];
-				this.y = this.$dom.offset()['top'];
-				frequencyHandler(this.y/cv.height);
-				qFactorHandler(this.x/cv.width);
-				ctx.strokeStyle = gradient;
-				ctx.lineWidth = "4";
-				//ctx.scale(this.y%4, 1.0);
-				ctx.beginPath();
-				for (var i = 0; i < 28; i+=4) {
-            		var magnitude = freqByteData[i];
-					gradient.addColorStop((magnitude/255.0), "rgb("+freqByteData[i+1]%127+128+","+freqByteData[i+2]%127+128+","+freqByteData[i+2]%127+128+")");
-					//ctx.rotate(Math.PI/4);
-					ctx.arc(50, 50, magnitude, 0, Math.PI*2);
-					//ctx.strokeRect(0, 0, magnitude, magnitude);
-					ctx.closePath();
-				}
-				ctx.stroke();
-				ctx.restore();
-			};
+			ctx.save();
+			ctx.translate(this.x*xRatio, this.y*yRatio);
+        	var freqByteData = new
+			Uint8Array(audioAnalyser.frequencyBinCount);
+        	audioAnalyser.getByteFrequencyData(freqByteData);
+			this.x = this.$dom.offset()['left'];
+			this.y = this.$dom.offset()['top'];
+			frequencyHandler(this.y/cv.height);
+			qFactorHandler(this.x/cv.width);
+			ctx.strokeStyle = gradient;
+			ctx.lineWidth = "4";
+			ctx.beginPath();
+			ctx.moveTo(50,50);
+			ctx.arc(50, 50, 10, 0, Math.PI*2);
+			for (var i = 0; i < 28; i+=4) {
+            	var magnitude = freqByteData[i];
+				gradient.addColorStop((magnitude/512.0), "rgb("+freqByteData[i+1]%127+128+","+freqByteData[i+2]%127+128+","+freqByteData[i+2]%127+128+")");
+				//ctx.rotate(Math.PI/4);
+				ctx.moveTo((50 + magnitude), 50);
+				ctx.arc(50, 50, magnitude, 0, Math.PI*2);
+				//ctx.strokeRect(0, 0, magnitude, magnitude);
+			}
+			ctx.stroke();
+			ctx.restore();
+		};
 		/*
         var barCount = Math.round(width / bar_width);
         for (var i = 0; i < barCount; i++) {
