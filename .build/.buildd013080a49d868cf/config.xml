@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://yourdomain/ball1" version="2.2.0" viewmodes="fullscreen">
+    <tizen:application id="oV3aerY34z.ball1" package="oV3aerY34z" required_version="2.2"/>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.normal.720.1280"/>
+    <icon src="icon.png"/>
+    <name>ball1</name>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:setting screen-orientation="portrait" context-menu="disable" background-support="disable" encryption="disable" install-location="auto"/>
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+</widget>
