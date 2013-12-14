@@ -1,4 +1,9 @@
 /*
+ * Sonostar: Accelerometer Animated Audio Filter
+ * by Revlin John
+ * 
+ * Derived from:
+ * 
  *      Copyright 2013  Samsung Electronics Co., Ltd
  *
  *      Licensed under the Flora License, Version 1.1 (the "License");
@@ -14,6 +19,8 @@
  *      limitations under the License.
  */
 
+/* jshint -W099 */
+
 /*global $: false, tizen: false, navigator: false, app: true*/
 
 var app = {
@@ -26,8 +33,8 @@ var app = {
 	ballHeight: 0,
 	sunWidth: 0,
 	sunHeight: 0,
-	ballX: 100,
-	ballY: 100,
+	ballX: 0,
+	ballY: 0,
 	dX: 0,
 	dY: 0,
 	sunX: 0,
@@ -80,7 +87,51 @@ var app = {
 		this.backgroundLeft += bdX * br;
 		this.backgroundTop += bdY * br;
 
-		//$('.background').css('background-position', (this.backgroundLeft - 330) + 'px ' + (this.backgroundTop - 330) + 'px');
+		$('.background').css('background-position', (this.backgroundLeft - 330) + 'px ' + (this.backgroundTop - 330) + 'px');
+	},
+
+	/**
+	 * Draw sun position
+	 * @param {int} x current x earth position
+	 * @param {int} y current y earth position
+	 */
+	earthUpdateSunPosition: function earthUpdateSunPosition(x, y) {
+		"use strict";
+		var rX, rY,
+			cX, cY,
+			tX, tY,
+			bdX, bdY,
+			br;
+
+		rX = -8.0;
+		rY = -8.0;
+
+		cX = (this.gameWidth - this.sunWidth) / 2;
+		cY = (this.gameHeight - this.sunHeight) / 2;
+
+		tX = cX + (-x * rX);
+		tY = cY + (y * rY);
+
+		bdX = tX - this.sunX;
+		bdY = tY - this.sunY;
+
+		br = 0.2;
+
+		this.sunX += bdX * br;
+		this.sunY += bdY * br;
+
+		$('#sun').css('left', this.sunX + 'px');
+		$('#sun').css('top', this.sunY + 'px');
+		$('#sun').show();
+	},
+
+	/**
+	 * Deceleration - used when the earth leaves the Sun's gravitation
+	 */
+	deceleration: function deceleration() {
+		"use strict";
+		this.dX *= 0.6;
+		this.dY *= 0.6;
 	},
 
 	/**
@@ -100,10 +151,8 @@ var app = {
 		event = this.event;
 		borderTolerance = 30;	// when Earth reach a border, then Earth is "moving"
 
-		x = (event.accelerationIncludingGravity.z < 0) ?
-				2*event.accelerationIncludingGravity.x : 
-				-2*event.accelerationIncludingGravity.x;
-		y = event.accelerationIncludingGravity.z + 0.0;
+		x = -event.accelerationIncludingGravity.x;
+		y = -event.accelerationIncludingGravity.y;
 
 		// calculate X and Y distances between the Sun and Earth
 		dXl = (this.sunX + this.sunWidth / 2 - (this.ballX + (this.ballWidth / 2))); // x distance
@@ -219,10 +268,8 @@ var app = {
 
 		event = this.event;
 
-		x = (event.accelerationIncludingGravity.z < 0) ?
-			2*event.accelerationIncludingGravity.x : 
-			-2*event.accelerationIncludingGravity.x;
-		y = event.accelerationIncludingGravity.z + 0.0;
+		x = -event.accelerationIncludingGravity.x;
+		y = -event.accelerationIncludingGravity.y;
 
 		stickTop = 0;
 		stickLeft = 0;
@@ -344,10 +391,10 @@ var app = {
 
 		$('#sun').remove();
 		$('.ball').attr('src', './images/ball1.png');
-		$('.ball').css('width', '186px');
-		$('.ball').css('height', '186px');
+		$('.ball').css('width', '86px');
+		$('.ball').css('height', '86px');
 
-		//$('.background').css('background-position', '0px -90px');
+		$('.background').css('background-position', '0px -90px');
 
 		this.ballWidth = parseInt($('.ball').css('width'), 10);
 		this.ballHeight = parseInt($('.ball').css('height'), 10);
@@ -375,7 +422,7 @@ var app = {
 		$('.ball').css('width', '100px');
 		$('.ball').css('height', '100px');
 
-		//$('.background').css('background-position', '0px -80px');
+		$('.background').css('background-position', '0px -80px');
 
 		this.ballWidth = parseInt($('.ball').css('width'), 10);
 		this.ballHeight = parseInt($('.ball').css('height'), 10);
@@ -400,14 +447,14 @@ var app = {
 		this.current = 'earth';
 
 		$('.ball').attr('src', './images/earth.png');
-		$('#model').append('<img id="sun" class="sun" src="./images/sun.png" style="display: none;"></img>');
+		$('#main').append('<img id="sun" class="sun" src="./images/sun.png" style="display: none;"></img>');
 
 		this.sunX = (this.gameWidth - parseInt($('#sun').css('width'), 10)) / 2;
 		this.sunY = (this.gameHeight - parseInt($('#sun').css('height'), 10)) / 2;
 		$('.ball').css('width', '50px');
 		$('.ball').css('height', '50px');
 
-		//$('.background').css('background-position', '0px 0px');
+		$('.background').css('background-position', '0px 0px');
 
 		this.ballWidth = parseInt($('.ball').css('width'), 10);
 		this.ballHeight = parseInt($('.ball').css('height'), 10);
@@ -427,7 +474,7 @@ var app = {
 		"use strict";
 		this.event = event;
 	},
-
+	
   	canvasApp: function canvasApp( cv ) {
 		var cv = this.cv = cv,
 			ctx = cv.getContext('2d');
@@ -472,7 +519,6 @@ var app = {
 			canvasFigures[0].draw(ctx);
 		}
 		
-		/* Begin draw loop */
   		try {
 			var time = 0;
     		var drawLoop = setInterval(draw,31,ctx);
@@ -790,7 +836,7 @@ function webAudioInit() {
 			ctx.arc(50, 50, 10, 0, Math.PI*2);
 			for (var i = 0; i < 28; i+=4) {
             	var magnitude = freqByteData[i];
-				gradient.addColorStop((magnitude/512.0), "rgb("+freqByteData[i+1]%127+128+","+freqByteData[i+2]%127+128+","+freqByteData[i+2]%127+128+")");
+				//gradient.addColorStop((magnitude/512.0), "rgb("+freqByteData[i+1]%127+128+","+freqByteData[i+2]%127+128+","+freqByteData[i+2]%127+128+")");
 				//ctx.rotate(Math.PI/4);
 				ctx.moveTo((50 + magnitude), 50);
 				ctx.arc(50, 50, magnitude, 0, Math.PI*2);
@@ -827,39 +873,20 @@ function webAudioInit() {
     //Events for the play/stop bottons
     document.querySelector('.play').addEventListener("click", this.playSound);
     document.querySelector('.stop').addEventListener("click", this.stopSound);
-/*
-    //Events for volume
-    document.querySelector('#range_volume').addEventListener("change", this.volumeHandler);
 
-    //Events for q factor
-    document.querySelector('#range_qFactor').addEventListener("change", this.qFactorHandler);
-
-    //Events for frequency
-    document.querySelector('#range_frequency').addEventListener("change", this.frequencyHandler);
-
-    //Events for gain
-    document.querySelector('#range_gain').addEventListener("change", this.gainHandler);
-
-    //Events for filter (lowpass, highpass, bandpass, lowshelf, highshelf, eaking, notch, allpass)
-    var filterBtn = document.querySelectorAll('.filter-btn button');
-    for (var i = 0; i < filterBtn.length; i++) {
-        filterBtn[i].addEventListener("click", filterTypeHandler);
-    }
-*/
     this.init();
 }
 
-function load(mainID) {
+$(document).ready(function(){
 	"use strict";
-	var canvas=document.createElement("canvas");
-	document.getElementById(mainID).replaceChild( canvas, document.getElementById("layer1") );
-	setTimeout(app.canvasApp, 333, canvas);
+	//var canvas=document.createElement("canvas");
+	//document.getElementById('main').replaceChild( canvas, document.getElementById("layer1") );
+	setTimeout(app.canvasApp, 333, window.layer1);
 	if (typeof Debugger === "function") { 
 		Debugger.on = true;
 	} else {
 		window.Debugger = {
 			log: function() {
-				/* no debugger.js */
 			}
 		};
 	}
@@ -904,4 +931,5 @@ function load(mainID) {
 	
     webAudioInit();
 	setSound();
-}
+});
+
